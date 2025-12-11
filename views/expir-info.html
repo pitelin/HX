@@ -68,50 +68,52 @@
             font-weight: bold;
         }
 
-        /* 对照品表格的列宽设置 */
-.pure-table th:nth-child(1), /* 名称 */
-.pure-table td:nth-child(1) {
-    width: 25%; /* 药品名称需要较多空间 */
-        }
-        /* 设置各列宽度 - 缩短特定列 */
-        .pure-table th:nth-child(1), /* 批号 */
+        /* 对照品表格的列宽设置（6列） */
+        .pure-table th:nth-child(1), /* 名称 */
         .pure-table td:nth-child(1) {
-            width: 10%;
+            width: 25%; /* 药品名称需要较多空间 */
+            text-align: left;
         }
 
-        .pure-table th:nth-child(2), /* 有效期至 */
+        .pure-table th:nth-child(2), /* 批号 */
         .pure-table td:nth-child(2) {
-            width: 10%;
+            width: 12%;
         }
 
-        .pure-table th:nth-child(3), /* 含量丨纯度 */
+        .pure-table th:nth-child(3), /* 有效期至 */
         .pure-table td:nth-child(3) {
             width: 10%;
         }
 
-        .pure-table th:nth-child(4), /* 来源 */
+        .pure-table th:nth-child(4), /* 含量丨纯度 */
         .pure-table td:nth-child(4) {
+            width: 10%;
+        }
+
+        .pure-table th:nth-child(5), /* 来源 */
+        .pure-table td:nth-child(5) {
             width: 25%;
         }
 
-        .pure-table th:nth-child(5), /* 页码 */
-        .pure-table td:nth-child(5) {
-            width: 5%;
+        .pure-table th:nth-child(6), /* 页码 */
+        .pure-table td:nth-child(6) {
+            width: 8%;
         }
 
-        /* 设备表格的特殊列宽设置 */
-        .pure-table th:first-child, /* 设备名称 */
-        .pure-table td:first-child {
-            width: 40%;
+        /* 设备表格的特殊列宽设置（3列） */
+        .pure-table:has(caption:contains("设备信息")) th:nth-child(1), /* 设备名称 */
+        .pure-table:has(caption:contains("设备信息")) td:nth-child(1) {
+            width: 50%;
+            text-align: left;
         }
 
-        .pure-table th:nth-child(2), /* 设备编号 */
-        .pure-table td:nth-child(2) {
+        .pure-table:has(caption:contains("设备信息")) th:nth-child(2), /* 设备编号 */
+        .pure-table:has(caption:contains("设备信息")) td:nth-child(2) {
             width: 20%;
         }
 
-        .pure-table th:nth-child(3), /* 设备有效期至 */
-        .pure-table td:nth-child(3) {
+        .pure-table:has(caption:contains("设备信息")) th:nth-child(3), /* 设备有效期至 */
+        .pure-table:has(caption:contains("设备信息")) td:nth-child(3) {
             width: 15%;
         }
 
@@ -147,11 +149,11 @@
             
             .pure-table th:nth-child(1),
             .pure-table td:nth-child(1) {
-                width: 18%;
+                width: 20%;
             }
             
-            .pure-table th:nth-child(4),
-            .pure-table td:nth-child(4) {
+            .pure-table th:nth-child(5),
+            .pure-table td:nth-child(5) {
                 width: 30%;
             }
         }
@@ -238,7 +240,7 @@
         }
 
         function createStandardTable(data) {
-            return createTable(data, `对照品信息（${data.length}条）`, ["名称","批号", "有效期至", "含量丨纯度", "来源", "页码"], ["kind"])
+            return createTable(data, `对照品信息（${data.length}条）`, ["名称","批号", "有效期至", "含量丨纯度", "来源", "页码"], [])
         }
 
         function createTable(data, captionText, header, hidden = []) {
@@ -259,16 +261,40 @@
 
             data.forEach(element => {
                 let tr = document.createElement("tr")
-                for (const key in element) {
-                    if (Object.hasOwnProperty.call(element, key)) {
-                        if (hidden.includes(key)) {
-                            continue
-                        }
-                        const value = element[key]
-                        let td = document.createElement("td")
-                        td.innerHTML = (key == "expir") ? checkExpir(value) : value
-                        tr.appendChild(td)
+                
+                // 按照表头顺序添加数据
+                for (let i = 0; i < header.length; i++) {
+                    let td = document.createElement("td")
+                    let value = ""
+                    
+                    switch(header[i]) {
+                        case "名称":
+                            value = element.kind || ""
+                            break
+                        case "批号":
+                            value = element.batch || ""
+                            break
+                        case "有效期至":
+                            value = element.expir ? checkExpir(element.expir) : ""
+                            break
+                        case "含量丨纯度":
+                            value = element.content || ""
+                            break
+                        case "来源":
+                            value = element.source || ""
+                            break
+                        case "页码":
+                            value = element.page || ""
+                            break
+                        case "编号":
+                            value = element.id || ""
+                            break
+                        default:
+                            break
                     }
+                    
+                    td.innerHTML = value
+                    tr.appendChild(td)
                 }
                 table.appendChild(tr)
             })
