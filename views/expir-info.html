@@ -36,6 +36,21 @@
             background-color: #0056b3;
         }
 
+        .clear-search {
+            width: 15%;
+            padding: 8px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .clear-search:hover {
+            background-color: #5a6268;
+        }
+
         .pure-table {
             width: 100%;
             font-size: small;
@@ -138,13 +153,23 @@
             margin-bottom: 15px;
         }
 
+        .stats {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
         /* 响应式调整 */
         @media (max-width: 768px) {
             #keyword {
                 width: 70%;
             }
-            #search {
+            #search, .clear-search {
                 width: 25%;
+                margin-left: 0;
+                margin-top: 5px;
             }
             
             .pure-table th:nth-child(1),
@@ -156,27 +181,6 @@
             .pure-table td:nth-child(5) {
                 width: 30%;
             }
-        }
-        
-        /* 搜索统计信息样式 */
-        .search-result-info {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-left: 4px solid #007bff;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        
-        .search-result-info span {
-            font-weight: bold;
-            color: #007bff;
-        }
-        
-        .no-results {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-style: italic;
         }
     </style>
     <script src="../statics/modules/jquery.min.js"></script>
@@ -194,99 +198,134 @@
         ]
 
         let info = {}
+        let allData = {
+            device: [],
+            standard: []
+        }
+        
         $(() => {
             let count = databases.length
-            let interval = setInterval(() => {
-                if (count == 0) {
-                    $("#content").append("<p class='search-result-info'>已加载所有数据，请输入关键词搜索</p>")
-                    clearInterval(interval)
-                }
-            }, 100)
+            let loadedDevice = false
+            let loadedStandard = false
 
             // 加载所有数据
             for (const database of databases) {
                 $.getJSON(database.path, (data) => {
                     info[database.name] = data
+                    allData[database.name] = data // 保存所有数据
                     count = --count
+                    
                     switch (database.name) {
                         case "device":
-                            $("#content").append(`<p>已加载设备数据，共 ${data.length} 条</p>`)
+                            loadedDevice = true
                             break
                         case "standard":
-                            $("#content").append(`<p>已加载对照品数据，共 ${data.length} 条</p>`)
-                            break
-                        default:
+                            loadedStandard = true
                             break
                     }
+                    
+                    // 当两个数据都加载完成时，显示所有数据
+                    if (loadedDevice && loadedStandard) {
+                        displayAllData()
+                        $("#content").prepend(`<div class="stats">已加载设备数据 ${allData.device.length} 条，对照品数据 ${allData.standard.length} 条</div>`)
+                    }
+                }).fail(() => {
+                    count = --count
+                    $("#content").append(`<p style="color: red">加载${database.name}数据失败</p>`)
                 })
             }
 
+            // 搜索按钮点击事件
             $("#search").click(() => {
-                let keyword = $("#keyword").val().trim().toLowerCase()
-                $("#content").empty()
-                
-                if (keyword === "") {
-                    $("#content").append("<p class='search-result-info'>请输入搜索关键词</p>")
-                    return
-                }
-                
-                searchDevice(keyword)
-                searchStandard(keyword)
+                performSearch()
+            })
+            
+            // 清除搜索按钮
+            $("body").append('<button class="clear-search" id="clearSearch" style="display:none;">清除搜索</button>')
+            
+            $("#clearSearch").click(() => {
+                $("#keyword").val("")
+                performSearch()
             })
             
             // 添加回车键搜索功能
             $("#keyword").keypress(function(e) {
                 if (e.which == 13) {
-                    $("#search").click();
+                    performSearch()
                 }
             });
-        })
-
-        function searchDevice(keyword) {
-            let device = info.device.filter((value) => {
-                // 搜索多个字段：名称、编号
-                return (value.name && value.name.toLowerCase().includes(keyword)) ||
-                       (value.id && value.id.toLowerCase().includes(keyword))
-            })
             
-            if (device.length > 0) {
-                let resultInfo = document.createElement("div")
-                resultInfo.className = "search-result-info"
-                resultInfo.innerHTML = `设备搜索结果：找到 <span>${device.length}</span> 条匹配记录，关键词："${keyword}"`
-                $("#content").append(resultInfo)
-                
-                let table_device = createDeviceTable(device)
-                $("#content").append(table_device)
+            // 实时搜索（可选，可根据需要开启）
+            // $("#keyword").on("input", function() {
+            //     performSearch()
+            // });
+        })
+        
+        function performSearch() {
+            let keyword = $("#keyword").val().toLowerCase().trim()
+            $("#content").empty()
+            
+            if (keyword === "") {
+                // 如果搜索框为空，显示所有数据
+                displayAllData()
+                $("#clearSearch").hide()
+                $("#content").prepend(`<div class="stats">显示全部数据：设备 ${allData.device.length} 条，对照品 ${allData.standard.length} 条</div>`)
             } else {
-                let noResults = document.createElement("div")
-                noResults.className = "no-results"
-                noResults.innerHTML = `未找到匹配的设备数据，关键词："${keyword}"`
-                $("#content").append(noResults)
+                // 执行搜索
+                let searchResults = searchAllData(keyword)
+                $("#clearSearch").show()
+                $("#content").prepend(`<div class="stats">搜索"${keyword}"找到 ${searchResults.device.length} 条设备记录，${searchResults.standard.length} 条对照品记录</div>`)
             }
         }
-
-        function searchStandard(keyword) {
-            let standard = info.standard.filter((value) => {
-                // 搜索多个字段：名称、批号、来源、含量
-                return (value.kind && value.kind.toLowerCase().includes(keyword)) ||
-                       (value.batch && value.batch.toLowerCase().includes(keyword)) ||
+        
+        function searchAllData(keyword) {
+            // 搜索设备数据（可搜索多个字段）
+            let device = allData.device.filter((value) => {
+                // 搜索编号、名称等字段
+                return (value.id && value.id.toLowerCase().includes(keyword)) ||
+                       (value.name && value.name.toLowerCase().includes(keyword)) ||
+                       (value.where && value.where.toLowerCase().includes(keyword))
+            })
+            
+            // 搜索对照品数据（可搜索多个字段）
+            let standard = allData.standard.filter((value) => {
+                // 搜索批号、名称、来源等字段
+                return (value.batch && value.batch.toLowerCase().includes(keyword)) ||
+                       (value.kind && value.kind.toLowerCase().includes(keyword)) ||
                        (value.source && value.source.toLowerCase().includes(keyword)) ||
                        (value.content && value.content.toLowerCase().includes(keyword))
             })
             
+            // 显示搜索结果
+            if (device.length > 0) {
+                let table_device = createDeviceTable(device)
+                $("#content").append(table_device)
+            }
+            
             if (standard.length > 0) {
-                let resultInfo = document.createElement("div")
-                resultInfo.className = "search-result-info"
-                resultInfo.innerHTML = `对照品搜索结果：找到 <span>${standard.length}</span> 条匹配记录，关键词："${keyword}"`
-                $("#content").append(resultInfo)
-                
                 let table_standard = createStandardTable(standard)
                 $("#content").append(table_standard)
-            } else {
-                let noResults = document.createElement("div")
-                noResults.className = "no-results"
-                noResults.innerHTML = `未找到匹配的对照品数据，关键词："${keyword}"`
-                $("#content").append(noResults)
+            }
+            
+            // 如果没有搜索结果，显示提示
+            if (device.length === 0 && standard.length === 0) {
+                $("#content").append("<p>没有找到匹配的记录，请尝试其他关键词</p>")
+            }
+            
+            return { device, standard }
+        }
+        
+        function displayAllData() {
+            // 显示所有设备数据
+            if (allData.device.length > 0) {
+                let table_device = createDeviceTable(allData.device)
+                $("#content").append(table_device)
+            }
+            
+            // 显示所有对照品数据
+            if (allData.standard.length > 0) {
+                let table_standard = createStandardTable(allData.standard)
+                $("#content").append(table_standard)
             }
         }
 
@@ -362,16 +401,23 @@
                 return value
             }
             
-            // 处理只有年月的情况（如2023.07）
+            // 处理 "2023.07" 这种格式
+            let date = new Date()
             let array = value.split(".")
-            if (array.length < 3) {
-                // 如果是只有年月，补上日
-                array.push("01")
+            
+            // 设置年份和月份
+            date.setFullYear(array[0])
+            date.setMonth(array[1] - 1)
+            
+            // 如果没有日期，设置为当月的最后一天
+            if (array.length === 2) {
+                date.setDate(1)
+                date.setMonth(date.getMonth() + 1)
+                date.setDate(0) // 设置为上个月的最后一天
+            } else {
+                date.setDate(array[2])
             }
             
-            let date = new Date()
-            date.setFullYear(array[0], array[1] - 1, array[2])
-
             let day = (date - Date.now()) / 86400000
 
             if (day <= 0) {
@@ -393,23 +439,21 @@
 
 <body>
     <div class="searchbox">
-        <input type="text" name="keyword" id="keyword" placeholder="输入药品名称、批号、来源或含量进行搜索">
+        <input type="text" name="keyword" id="keyword" placeholder="输入批号、名称、来源等关键词搜索（忽略大小写）">
         <button type="submit" id="search">搜索</button>
     </div>
 
     <div id="content">
-        <p class="search-result-info">数据加载中，请稍候...</p>
+        <p>正在加载数据...</p>
     </div>
     <div>
         <p>
-            <strong>搜索说明：</strong><br>
-            1. 可以搜索药品名称（支持模糊搜索，如输入"左乙拉西坦"或"杂质G"）<br>
-            2. 可以搜索批号（如"K2016151"）<br>
-            3. 可以搜索来源（如"阿拉丁"、"海欣"）<br>
-            4. 可以搜索含量（如"99.2%"）<br>
-            5. 搜索不区分大小写<br><br>
-            
-            <strong>过期提醒：</strong><br>
+            搜索说明：<br>
+            - 支持模糊搜索，可搜索批号、药品名称、来源等字段<br>
+            - 搜索框为空时显示全部数据<br>
+            - 按回车键或点击搜索按钮开始搜索<br>
+            <br>
+            过期提醒：<br>
             <span class="expir30">黄色表示有效期剩余 30 天</span><br>
             <span class="expir7">红色表示有效期剩余 7 天</span><br>
             <span class="expired">红色加删除线表示已过期</span><br>
