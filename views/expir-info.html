@@ -157,6 +157,27 @@
                 width: 30%;
             }
         }
+        
+        /* 搜索统计信息样式 */
+        .search-result-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .search-result-info span {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
     </style>
     <script src="../statics/modules/jquery.min.js"></script>
     <script>
@@ -177,7 +198,7 @@
             let count = databases.length
             let interval = setInterval(() => {
                 if (count == 0) {
-                    $("#content").append("<p>已加载所有数据</p>")
+                    $("#content").append("<p class='search-result-info'>已加载所有数据，请输入关键词搜索</p>")
                     clearInterval(interval)
                 }
             }, 100)
@@ -201,8 +222,14 @@
             }
 
             $("#search").click(() => {
-                let keyword = $("#keyword").val().toLowerCase()
+                let keyword = $("#keyword").val().trim().toLowerCase()
                 $("#content").empty()
+                
+                if (keyword === "") {
+                    $("#content").append("<p class='search-result-info'>请输入搜索关键词</p>")
+                    return
+                }
+                
                 searchDevice(keyword)
                 searchStandard(keyword)
             })
@@ -217,21 +244,49 @@
 
         function searchDevice(keyword) {
             let device = info.device.filter((value) => {
-                return value.id.toLowerCase().includes(keyword)
+                // 搜索多个字段：名称、编号
+                return (value.name && value.name.toLowerCase().includes(keyword)) ||
+                       (value.id && value.id.toLowerCase().includes(keyword))
             })
+            
             if (device.length > 0) {
+                let resultInfo = document.createElement("div")
+                resultInfo.className = "search-result-info"
+                resultInfo.innerHTML = `设备搜索结果：找到 <span>${device.length}</span> 条匹配记录，关键词："${keyword}"`
+                $("#content").append(resultInfo)
+                
                 let table_device = createDeviceTable(device)
                 $("#content").append(table_device)
+            } else {
+                let noResults = document.createElement("div")
+                noResults.className = "no-results"
+                noResults.innerHTML = `未找到匹配的设备数据，关键词："${keyword}"`
+                $("#content").append(noResults)
             }
         }
 
         function searchStandard(keyword) {
             let standard = info.standard.filter((value) => {
-                return value.batch.toLowerCase().includes(keyword)
+                // 搜索多个字段：名称、批号、来源、含量
+                return (value.kind && value.kind.toLowerCase().includes(keyword)) ||
+                       (value.batch && value.batch.toLowerCase().includes(keyword)) ||
+                       (value.source && value.source.toLowerCase().includes(keyword)) ||
+                       (value.content && value.content.toLowerCase().includes(keyword))
             })
+            
             if (standard.length > 0) {
+                let resultInfo = document.createElement("div")
+                resultInfo.className = "search-result-info"
+                resultInfo.innerHTML = `对照品搜索结果：找到 <span>${standard.length}</span> 条匹配记录，关键词："${keyword}"`
+                $("#content").append(resultInfo)
+                
                 let table_standard = createStandardTable(standard)
                 $("#content").append(table_standard)
+            } else {
+                let noResults = document.createElement("div")
+                noResults.className = "no-results"
+                noResults.innerHTML = `未找到匹配的对照品数据，关键词："${keyword}"`
+                $("#content").append(noResults)
             }
         }
 
@@ -269,7 +324,7 @@
                     
                     switch(header[i]) {
                         case "名称":
-                            value = element.kind || ""
+                            value = element.kind || element.name || ""
                             break
                         case "批号":
                             value = element.batch || ""
@@ -307,8 +362,14 @@
                 return value
             }
             
-            let date = new Date()
+            // 处理只有年月的情况（如2023.07）
             let array = value.split(".")
+            if (array.length < 3) {
+                // 如果是只有年月，补上日
+                array.push("01")
+            }
+            
+            let date = new Date()
             date.setFullYear(array[0], array[1] - 1, array[2])
 
             let day = (date - Date.now()) / 86400000
@@ -332,14 +393,23 @@
 
 <body>
     <div class="searchbox">
-        <input type="text" name="keyword" id="keyword" placeholder="输入批号或编号查询（忽略大小写）">
+        <input type="text" name="keyword" id="keyword" placeholder="输入药品名称、批号、来源或含量进行搜索">
         <button type="submit" id="search">搜索</button>
     </div>
 
-    <div id="content"></div>
+    <div id="content">
+        <p class="search-result-info">数据加载中，请稍候...</p>
+    </div>
     <div>
         <p>
-            过期提醒：<br>
+            <strong>搜索说明：</strong><br>
+            1. 可以搜索药品名称（支持模糊搜索，如输入"左乙拉西坦"或"杂质G"）<br>
+            2. 可以搜索批号（如"K2016151"）<br>
+            3. 可以搜索来源（如"阿拉丁"、"海欣"）<br>
+            4. 可以搜索含量（如"99.2%"）<br>
+            5. 搜索不区分大小写<br><br>
+            
+            <strong>过期提醒：</strong><br>
             <span class="expir30">黄色表示有效期剩余 30 天</span><br>
             <span class="expir7">红色表示有效期剩余 7 天</span><br>
             <span class="expired">红色加删除线表示已过期</span><br>
