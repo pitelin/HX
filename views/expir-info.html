@@ -12,37 +12,143 @@
         .searchbox {
             width: 100%;
             white-space: nowrap;
+            margin-bottom: 15px;
         }
 
         #keyword {
             width: 80%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
 
         #search {
             width: 15%;
+            padding: 8px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #search:hover {
+            background-color: #0056b3;
         }
 
         .pure-table {
             width: 100%;
             font-size: small;
+            table-layout: fixed; /* 固定表格布局 */
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
 
         .pure-table caption {
             font-style: normal;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            text-align: left;
+        }
+
+        .pure-table th,
+        .pure-table td {
+            padding: 6px;
+            border: 1px solid #ddd;
+            text-align: center;
+            word-wrap: break-word; /* 长文本自动换行 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pure-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* 设置各列宽度 - 缩短特定列 */
+        .pure-table th:nth-child(1), /* 批号 */
+        .pure-table td:nth-child(1) {
+            width: 15%;
+        }
+
+        .pure-table th:nth-child(2), /* 有效期至 */
+        .pure-table td:nth-child(2) {
+            width: 12%;
+        }
+
+        .pure-table th:nth-child(3), /* 含量丨纯度 */
+        .pure-table td:nth-child(3) {
+            width: 10%;
+        }
+
+        .pure-table th:nth-child(4), /* 来源 */
+        .pure-table td:nth-child(4) {
+            width: 25%;
+        }
+
+        .pure-table th:nth-child(5), /* 页码 */
+        .pure-table td:nth-child(5) {
+            width: 8%;
+        }
+
+        /* 设备表格的特殊列宽设置 */
+        .pure-table th:first-child, /* 设备名称 */
+        .pure-table td:first-child {
+            width: 40%;
+        }
+
+        .pure-table th:nth-child(2), /* 设备编号 */
+        .pure-table td:nth-child(2) {
+            width: 20%;
+        }
+
+        .pure-table th:nth-child(3), /* 设备有效期至 */
+        .pure-table td:nth-child(3) {
+            width: 15%;
         }
 
         .expir30 {
             color: orange;
-
+            font-weight: bold;
         }
 
         .expir7 {
             color: red;
+            font-weight: bold;
         }
 
         .expired {
             color: red;
             text-decoration: line-through;
+            font-weight: bold;
+        }
+
+        #content {
+            overflow-x: auto; /* 小屏幕时横向滚动 */
+            margin-bottom: 15px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            #keyword {
+                width: 70%;
+            }
+            #search {
+                width: 25%;
+            }
+            
+            .pure-table th:nth-child(1),
+            .pure-table td:nth-child(1) {
+                width: 18%;
+            }
+            
+            .pure-table th:nth-child(4),
+            .pure-table td:nth-child(4) {
+                width: 30%;
+            }
         }
     </style>
     <script src="../statics/modules/jquery.min.js"></script>
@@ -64,7 +170,7 @@
             let count = databases.length
             let interval = setInterval(() => {
                 if (count == 0) {
-                    $("#content").append("已加载所有数据")
+                    $("#content").append("<p>已加载所有数据</p>")
                     clearInterval(interval)
                 }
             }, 100)
@@ -76,10 +182,10 @@
                     count = --count
                     switch (database.name) {
                         case "device":
-                            $("#content").append(`已加载设备数据，共 ${data.length} 条<br>`)
+                            $("#content").append(`<p>已加载设备数据，共 ${data.length} 条</p>`)
                             break
                         case "standard":
-                            $("#content").append(`已加载对照品数据，共 ${data.length} 条<br>`)
+                            $("#content").append(`<p>已加载对照品数据，共 ${data.length} 条</p>`)
                             break
                         default:
                             break
@@ -93,6 +199,13 @@
                 searchDevice(keyword)
                 searchStandard(keyword)
             })
+            
+            // 添加回车键搜索功能
+            $("#keyword").keypress(function(e) {
+                if (e.which == 13) {
+                    $("#search").click();
+                }
+            });
         })
 
         function searchDevice(keyword) {
@@ -159,6 +272,10 @@
         }
 
         function checkExpir(value) {
+            if (!value || value === '/' || value === '') {
+                return value
+            }
+            
             let date = new Date()
             let array = value.split(".")
             date.setFullYear(array[0], array[1] - 1, array[2])
@@ -184,7 +301,7 @@
 
 <body>
     <div class="searchbox">
-        <input type="text" name="keyword" id="keyword" placeholder="输入查询关键字（忽略大小写）">
+        <input type="text" name="keyword" id="keyword" placeholder="输入批号或编号查询（忽略大小写）">
         <button type="submit" id="search">搜索</button>
     </div>
 
