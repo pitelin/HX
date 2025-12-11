@@ -68,15 +68,20 @@
             font-weight: bold;
         }
 
+        /* 对照品表格的列宽设置 */
+.pure-table th:nth-child(1), /* 名称 */
+.pure-table td:nth-child(1) {
+    width: 25%; /* 药品名称需要较多空间 */
+        }
         /* 设置各列宽度 - 缩短特定列 */
         .pure-table th:nth-child(1), /* 批号 */
         .pure-table td:nth-child(1) {
-            width: 15%;
+            width: 10%;
         }
 
         .pure-table th:nth-child(2), /* 有效期至 */
         .pure-table td:nth-child(2) {
-            width: 12%;
+            width: 10%;
         }
 
         .pure-table th:nth-child(3), /* 含量丨纯度 */
@@ -91,7 +96,7 @@
 
         .pure-table th:nth-child(5), /* 页码 */
         .pure-table td:nth-child(5) {
-            width: 8%;
+            width: 5%;
         }
 
         /* 设备表格的特殊列宽设置 */
@@ -233,7 +238,7 @@
         }
 
         function createStandardTable(data) {
-            return createTable(data, `对照品信息（${data.length}条）`, ["批号", "有效期至", "含量丨纯度", "来源", "页码"], ["kind"])
+            return createTable(data, `对照品信息（${data.length}条）`, ["名称","批号", "有效期至", "含量丨纯度", "来源", "页码"], ["kind"])
         }
 
         function createTable(data, captionText, header, hidden = []) {
