@@ -329,6 +329,16 @@
                 font-size: 13px;
             }
         }
+        
+        .error-message {
+            background: #ffeaea;
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #d32f2f;
+        }
     </style>
 </head>
 <body>
@@ -354,6 +364,10 @@
             
             <div id="stats" class="stats">
                 正在加载色谱柱数据...
+            </div>
+            
+            <div id="errorMessage" class="error-message" style="display: none;">
+                <!-- 错误信息将在这里显示 -->
             </div>
             
             <div class="table-container">
@@ -386,6 +400,10 @@
         let filteredData = [];
 
         $(document).ready(function() {
+            console.log("页面加载完成");
+            console.log("当前页面URL:", window.location.href);
+            console.log("当前页面路径:", window.location.pathname);
+            
             // 加载色谱柱数据
             loadColumnData();
             
@@ -409,13 +427,44 @@
         });
         
         function loadColumnData() {
+            console.log("开始加载色谱柱数据...");
+            
+            // 隐藏错误信息
+            $('#errorMessage').hide();
+            
             // 尝试从本地JSON文件加载数据
-            // 注意：这里使用相对路径，需要确保文件存在
-            $.ajax({
-                url: '../statics/info/column-search.json',
-                dataType: 'json',
-                success: function(data) {
-                    console.log('成功加载色谱柱数据:', data);
+            // 使用绝对路径或相对路径，根据您的实际部署情况调整
+            const jsonUrl = '../statics/info/column-search.json';
+            console.log("尝试加载JSON文件:", jsonUrl);
+            
+            // 使用fetch API，它比jQuery的ajax更现代，错误信息更详细
+            fetch(jsonUrl)
+                .then(response => {
+                    console.log("响应状态:", response.status, response.statusText);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误! 状态: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    // 检查响应内容类型
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('响应的内容不是JSON格式');
+                    }
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("成功加载数据:", data);
+                    
+                    if (!Array.isArray(data)) {
+                        throw new Error('JSON数据不是数组格式');
+                    }
+                    
+                    if (data.length === 0) {
+                        console.warn("JSON文件为空数组");
+                    }
+                    
                     allData = data;
                     filteredData = [...data];
                     
@@ -428,29 +477,29 @@
                     
                     // 更新状态信息
                     $('#stats').html(`<strong>数据加载成功：</strong>共 ${allData.length} 根色谱柱`);
-                },
-                error: function(xhr, status, error) {
-                    console.error('加载色谱柱数据失败:', status, error);
-                    console.log('尝试加载的URL:', '../statics/info/column-search.json');
+                })
+                .catch(error => {
+                    console.error('加载色谱柱数据失败:', error);
                     
-                    // 检查可能的文件结构
-                    console.log('检查文件结构...');
-                    console.log('当前页面URL:', window.location.href);
+                    // 显示错误信息
+                    showError(`无法加载色谱柱数据: ${error.message}`);
                     
-                    // 尝试其他可能的路径
-                    tryAlternativePaths();
-                }
-            });
+                    // 尝试使用备选方案
+                    tryAlternativeMethods();
+                });
         }
         
-        function tryAlternativePaths() {
-            // 尝试不同的路径方案
+        function tryAlternativeMethods() {
+            console.log("尝试备选加载方案...");
+            
+            // 备选方案1：尝试不同的路径
             const alternativePaths = [
                 './statics/info/column-search.json',
                 'statics/info/column-search.json',
                 '/statics/info/column-search.json',
+                '../info/column-search.json',
                 'info/column-search.json',
-                '../info/column-search.json'
+                'column-search.json'
             ];
             
             let currentIndex = 0;
@@ -458,37 +507,44 @@
             function tryNextPath() {
                 if (currentIndex >= alternativePaths.length) {
                     // 所有路径都失败了，使用示例数据
-                    console.log('所有路径尝试失败，使用示例数据');
+                    console.log("所有路径尝试失败，使用示例数据");
                     useSampleData();
                     return;
                 }
                 
                 const path = alternativePaths[currentIndex];
-                console.log('尝试路径:', path);
+                console.log(`尝试备选路径 ${currentIndex + 1}/${alternativePaths.length}:`, path);
                 
-                $.ajax({
-                    url: path,
-                    dataType: 'json',
-                    success: function(data) {
-                        console.log('成功从路径加载数据:', path);
+                fetch(path)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP错误! 状态: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(`成功从路径加载数据: ${path}`);
                         allData = data;
                         filteredData = [...data];
                         displayData(filteredData);
                         updateStats(filteredData);
                         $('#loading').hide();
                         $('#stats').html(`<strong>数据加载成功（从 ${path}）：</strong>共 ${allData.length} 根色谱柱`);
-                    },
-                    error: function() {
+                        $('#errorMessage').hide();
+                    })
+                    .catch(error => {
+                        console.log(`路径 ${path} 失败:`, error.message);
                         currentIndex++;
                         tryNextPath();
-                    }
-                });
+                    });
             }
             
             tryNextPath();
         }
         
         function useSampleData() {
+            console.log("使用示例数据");
+            
             // 使用示例数据
             allData = [
                 {
@@ -499,11 +555,11 @@
                     "mainPurpose": "常规反相色谱分析，适用于大多数有机化合物"
                 },
                 {
-                    "model": "ZORBAX Eclipse Plus C18",
-                    "specification": "150mm × 4.6mm, 5μm",
-                    "serialNumber": "AG12345678",
-                    "columnNumber": "COL-2023-002",
-                    "mainPurpose": "高效分离，适用于复杂样品基质"
+                    "model": "Kinetex C18",
+                    "specification": "100mm × 4.6mm, 2.6μm",
+                    "serialNumber": "KX98765432",
+                    "columnNumber": "COL-2023-007",
+                    "mainPurpose": "超高效液相色谱分析"
                 }
             ];
             
@@ -511,7 +567,23 @@
             displayData(filteredData);
             updateStats(filteredData);
             $('#loading').hide();
+            $('#errorMessage').html(`<strong>注意：</strong>无法加载本地数据文件，已显示示例数据。请确保在 <code>statics/info/column-search.json</code> 文件中添加您的色谱柱数据。`);
+            $('#errorMessage').show();
             $('#stats').html(`<strong>加载示例数据：</strong>共 ${allData.length} 根色谱柱（未找到本地数据文件）`);
+        }
+        
+        function showError(message) {
+            $('#errorMessage').html(`
+                <strong>加载数据时出错：</strong>${message}<br>
+                <small>
+                    请检查：<br>
+                    1. JSON文件是否存在于 <code>statics/info/column-search.json</code><br>
+                    2. JSON文件格式是否正确（必须是有效的JSON数组）<br>
+                    3. 如果使用本地文件系统，请使用本地HTTP服务器运行（如Live Server扩展）<br>
+                    4. 检查浏览器控制台获取更多错误信息（按F12打开开发者工具）
+                </small>
+            `);
+            $('#errorMessage').show();
         }
         
         function performSearch() {
@@ -589,6 +661,7 @@
         
         // HTML转义函数，防止XSS攻击
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
