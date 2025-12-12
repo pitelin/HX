@@ -1,1 +1,10 @@
-
+[
+    {
+        "model": "型号",
+        "specification": "规格",
+        "serialNumber": "序列号",
+        "columnNumber": "编号",
+        "mainPurpose": "主要用途"
+    },
+    // 更多色谱柱数据...
+]
