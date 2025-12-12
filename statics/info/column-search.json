@@ -10,7 +10,7 @@
     "model": "ZORBAX Eclipse Plus C18",
     "specification": "150mm × 4.6mm, 5μm",
     "serialNumber": "AG12345678",
-    "columnNumber": "COL-2023-002",
+    "columnNumber": "3445",
     "mainPurpose": "高效分离，适用于复杂样品基质"
   },
   {
@@ -18,7 +18,8 @@
     "specification": "100mm × 2.1mm, 1.9μm",
     "serialNumber": "TH98765432",
     "columnNumber": "COL-2023-003",
-    "mainPurpose": "LC-MS/MS分析，高灵敏度"
+    "mainPurpose": "3446"
   }
 ]
+
 
