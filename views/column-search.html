@@ -348,7 +348,7 @@
                     <button class="btn btn-clear" id="clearBtn" style="display: none;">清除搜索</button>
                 </div>
                 <div class="search-tips">
-                    搜索提示：支持模糊搜索，例如输入"C18"、"25"、"5961"或项目名称的部分内容
+                    搜索提示：支持模糊搜索，例如输入"C18"、"250mm"、"COL-2023"或项目名称的部分内容
                 </div>
             </div>
             
@@ -375,11 +375,11 @@
                 </table>
             </div>
             
-            <a href="./index.html" class="back-btn">← 返回主菜单</a>
+            <a href="../index.html" class="back-btn">← 返回主菜单</a>
         </div>
     </div>
 
-    <script src="./statics/modules/jquery.min.js"></script>
+    <script src="../statics/modules/jquery.min.js"></script>
     <script>
         // 从本地文件加载色谱柱数据
         let allData = [];
@@ -408,10 +408,9 @@
             });
         });
         
-            function loadColumnData() {
-            $.getJSON('./statics/info/column-search.json', function(data) {
-                allData = data;
-                filteredData = [...data];
+        function loadColumnData() {
+            // 使用正确的相对路径：返回到上一级目录，然后进入statics/info/
+            $.getJSON('../statics/info/column-search.json', function(data) {
                 allData = data;
                 filteredData = [...data];
                 
