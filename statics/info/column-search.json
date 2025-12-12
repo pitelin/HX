@@ -1,10 +1,10 @@
 [
   {
-    "model": "XBridge C18",
-    "specification": "250mm × 4.6mm, 5μm",
-    "serialNumber": "0212345678AB",
-    "columnNumber": "COL-2023-001",
-    "mainPurpose": "常规反相色谱分析，适用于大多数有机化合物"
+    "model": "Waters symmetry C18",
+    "specification": "4.6*250mm，5um",
+    "serialNumber": "02113615713696",
+    "columnNumber": "01",
+    "mainPurpose": "3444"
   },
   {
     "model": "ZORBAX Eclipse Plus C18",
@@ -21,3 +21,4 @@
     "mainPurpose": "LC-MS/MS分析，高灵敏度"
   }
 ]
+
