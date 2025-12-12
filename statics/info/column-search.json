@@ -1,10 +1,10 @@
 [
-    {
-        "model": "Waters symmetry C18",
-        "specification": "4.6*250mm，5um",
-        "serialNumber": "02113615713696",
-        "columnNumber": "01",
-        "mainPurpose": "3444"
-    },
-    // 更多色谱柱数据...
+  {
+    "model": "Waters symmetry C18",
+    "specification": "4.6*250mm，5um",
+    "serialNumber": "02113615713696",
+    "columnNumber": "01",
+    "mainPurpose": "3444"
+  },
+  // 更多色谱柱数据...
 ]
