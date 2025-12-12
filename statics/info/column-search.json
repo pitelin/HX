@@ -3,7 +3,7 @@
     "model": "Waters symmetry C18",
     "specification": "4.6*250mm，5um",
     "serialNumber": "02113615713696",
-    "columnNumber": "01",
+    "columnNumber": "LC-01",
     "mainPurpose": "3444"
   },
   {
@@ -21,5 +21,6 @@
     "mainPurpose": "3446"
   }
 ]
+
 
 
