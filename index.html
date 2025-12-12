@@ -7,33 +7,72 @@
     <title>制药行业专业 QC 工具</title>
     <script src="./statics/modules/jquery.min.js"></script>
     <style>
+        /* 微信X5浏览器兼容性修复 */
+        html, body {
+            -webkit-text-size-adjust: 100% !important;
+            text-size-adjust: 100% !important;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            -webkit-overflow-scrolling: touch;
+            overflow-x: hidden;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            -webkit-touch-callout: none; /* 禁止长按菜单 */
+            -webkit-user-select: none;   /* 禁止选择文本 */
+            user-select: none;
+        }
+        
+        /* 微信X5浏览器特殊优化 */
+        .container {
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
         }
         
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            background: -webkit-linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%); /* 兼容前缀 */
+            background: -moz-linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
             color: #333;
             line-height: 1.6;
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+        }
+        
+        /* 微信浏览器安全区域适配 */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: max(20px, env(safe-area-inset-left));
+                padding-right: max(20px, env(safe-area-inset-right));
+                padding-top: max(20px, env(safe-area-inset-top));
+                padding-bottom: max(20px, env(safe-area-inset-bottom));
+            }
         }
         
         .container {
             max-width: 900px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
+            background: -webkit-linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)); /* 兼容 */
             border-radius: 16px;
+            -webkit-border-radius: 16px;
+            -moz-border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); /* 兼容Safari和部分安卓 */
+            position: relative;
+            z-index: 1;
         }
         
         .header {
             background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            background: -webkit-linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            background: -moz-linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
             color: white;
             padding: 35px 25px;
             text-align: center;
@@ -49,6 +88,8 @@
             width: 200%;
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: -webkit-radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: -moz-radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
             z-index: 1;
         }
         
@@ -59,29 +100,37 @@
         
         .header h1 {
             font-size: 32px;
+            font-size: clamp(24px, 5vw, 32px); /* 响应式字体 */
             margin-bottom: 8px;
             font-weight: 700;
             letter-spacing: 0.5px;
+            line-height: 1.2;
         }
         
         .header p {
             opacity: 0.9;
             font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
             max-width: 600px;
             margin: 0 auto;
+            line-height: 1.5;
         }
         
         .content {
             padding: 35px 25px;
+            position: relative;
+            z-index: 2;
         }
         
         .section-title {
             font-size: 22px;
+            font-size: clamp(18px, 4vw, 22px);
             color: #2c3e50;
             margin-bottom: 20px;
             padding-bottom: 12px;
             border-bottom: 2px solid #eaecef;
             position: relative;
+            line-height: 1.3;
         }
         
         .section-title::after {
@@ -105,13 +154,27 @@
             background: white;
             border: 1px solid #e1e4e8;
             border-radius: 12px;
+            -webkit-border-radius: 12px;
+            -moz-border-radius: 12px;
             padding: 22px 18px;
             cursor: pointer;
             transition: all 0.3s ease;
+            -webkit-transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             text-align: center;
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px; /* 确保有足够触摸区域 */
+        }
+        
+        /* 为微信浏览器优化点击效果 */
+        .item:active {
+            transform: scale(0.98);
+            -webkit-transform: scale(0.98);
+            background-color: #f8f9fa;
         }
         
         .item::before {
@@ -122,18 +185,23 @@
             width: 100%;
             height: 4px;
             background: linear-gradient(90deg, #3498db, #2c3e50);
+            background: -webkit-linear-gradient(90deg, #3498db, #2c3e50);
             transform: scaleX(0);
+            -webkit-transform: scaleX(0);
             transition: transform 0.3s ease;
+            -webkit-transition: transform 0.3s ease;
         }
         
         .item:hover {
             border-color: #3498db;
             transform: translateY(-5px);
+            -webkit-transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         
         .item:hover::before {
             transform: scaleX(1);
+            -webkit-transform: scaleX(1);
         }
         
         .item:nth-child(1):hover {
@@ -142,6 +210,7 @@
         
         .item:nth-child(1)::before {
             background: linear-gradient(90deg, #e74c3c, #c0392b);
+            background: -webkit-linear-gradient(90deg, #e74c3c, #c0392b);
         }
         
         .item:nth-child(2):hover {
@@ -150,6 +219,7 @@
         
         .item:nth-child(2)::before {
             background: linear-gradient(90deg, #e67e22, #d35400);
+            background: -webkit-linear-gradient(90deg, #e67e22, #d35400);
         }
         
         .item:nth-child(3):hover {
@@ -158,6 +228,7 @@
         
         .item:nth-child(3)::before {
             background: linear-gradient(90deg, #9b59b6, #8e44ad);
+            background: -webkit-linear-gradient(90deg, #9b59b6, #8e44ad);
         }
         
         .item:nth-child(4):hover {
@@ -166,6 +237,7 @@
         
         .item:nth-child(4)::before {
             background: linear-gradient(90deg, #1abc9c, #16a085);
+            background: -webkit-linear-gradient(90deg, #1abc9c, #16a085);
         }
         
         .item:nth-child(5):hover {
@@ -174,6 +246,7 @@
         
         .item:nth-child(5)::before {
             background: linear-gradient(90deg, #f39c12, #e67e22);
+            background: -webkit-linear-gradient(90deg, #f39c12, #e67e22);
         }
         
         .item:nth-child(6):hover {
@@ -182,6 +255,7 @@
         
         .item:nth-child(6)::before {
             background: linear-gradient(90deg, #3498db, #2980b9);
+            background: -webkit-linear-gradient(90deg, #3498db, #2980b9);
         }
         
         .item:nth-child(7):hover {
@@ -190,6 +264,7 @@
         
         .item:nth-child(7)::before {
             background: linear-gradient(90deg, #2ecc71, #27ae60);
+            background: -webkit-linear-gradient(90deg, #2ecc71, #27ae60);
         }
         
         .item:nth-child(8):hover {
@@ -198,12 +273,15 @@
         
         .item:nth-child(8)::before {
             background: linear-gradient(90deg, #9b59b6, #8e44ad);
+            background: -webkit-linear-gradient(90deg, #9b59b6, #8e44ad);
         }
         
         .about {
             background: white;
             border: 1px solid #e1e4e8;
             border-radius: 12px;
+            -webkit-border-radius: 12px;
+            -moz-border-radius: 12px;
             padding: 22px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
@@ -211,6 +289,7 @@
         .about p {
             margin-bottom: 12px;
             color: #555;
+            line-height: 1.6;
         }
         
         .about p:last-child {
@@ -233,16 +312,22 @@
             color: #3498db;
             text-decoration: none;
             transition: color 0.2s;
+            -webkit-transition: color 0.2s;
         }
         
         a:hover {
             color: #2c3e50;
         }
         
-        /* 响应式调整 */
+        /* 微信浏览器特殊响应式优化 */
         @media (max-width: 768px) {
             .list {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header {
+                padding: 25px 20px;
             }
             
             .header h1 {
@@ -252,22 +337,67 @@
             .content {
                 padding: 25px 20px;
             }
+            
+            .item {
+                padding: 20px 15px;
+                min-height: 90px;
+            }
+            
+            /* 微信浏览器优化触摸区域 */
+            .item::after {
+                content: '';
+                position: absolute;
+                top: -10px;
+                left: -10px;
+                right: -10px;
+                bottom: -10px;
+                z-index: -1;
+            }
         }
         
-        /* 加载动画 */
+        /* 超小屏幕优化（iPhone SE等） */
+        @media (max-width: 375px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                border-radius: 12px;
+                -webkit-border-radius: 12px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .header p {
+                font-size: 13px;
+            }
+            
+            .item {
+                padding: 18px 12px;
+                min-height: 80px;
+                font-size: 15px;
+            }
+        }
+        
+        /* 加载动画 - 微信浏览器优化 */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
                 transform: translateY(20px);
+                -webkit-transform: translateY(20px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
+                -webkit-transform: translateY(0);
             }
         }
         
         .item {
             animation: fadeInUp 0.5s ease forwards;
+            -webkit-animation: fadeInUp 0.5s ease forwards;
             opacity: 0;
         }
         
@@ -279,16 +409,62 @@
         .item:nth-child(6) { animation-delay: 0.6s; }
         .item:nth-child(7) { animation-delay: 0.7s; }
         .item:nth-child(8) { animation-delay: 0.8s; }
+        
+        /* 微信浏览器加载提示 */
+        .wechat-loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .wechat-loading p {
+            margin-top: 20px;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        /* 微信浏览器兼容性提示 */
+        .wechat-compatibility {
+            display: none;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #856404;
+        }
     </style>
 </head>
 
 <body>
+    <!-- 微信浏览器加载提示 -->
+    <div id="wechatLoading" class="wechat-loading">
+        <div class="loading-spinner">
+            <div style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </div>
+        <p>页面加载中...</p>
+    </div>
+    
+    <!-- 微信浏览器兼容性提示 -->
+    <div id="wechatCompat" class="wechat-compatibility" style="display: none;">
+        温馨提示：如果页面显示异常，请点击右上角"···"选择"在浏览器中打开"以获得更好体验
+    </div>
+    
     <div class="container">
         <div class="header">
             <div class="header-content">
                 <h1>QC 百宝箱</h1>
-                <p>专业质量控制工具集合,提升实验室工作效率
-                海欣qc内部使用严禁外传</p>
+                <p>专业质量控制工具集合,提升实验室工作效率<br>海欣qc内部使用严禁外传</p>
             </div>
         </div>
         
@@ -304,6 +480,51 @@
         </div>
 
     <script>
+        // 检测是否为微信浏览器
+        function isWeChatBrowser() {
+            var ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf('micromessenger') !== -1;
+        }
+        
+        // 检测是否为X5内核
+        function isX5Browser() {
+            var ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf('mqqbrowser') !== -1 || ua.indexOf('tbs') !== -1;
+        }
+        
+        // 显示兼容性提示
+        function showCompatibilityWarning() {
+            if (isWeChatBrowser() || isX5Browser()) {
+                document.getElementById('wechatCompat').style.display = 'block';
+            }
+        }
+        
+        // 优化微信浏览器点击事件
+        function optimizeWeChatClicks() {
+            if (isWeChatBrowser() || isX5Browser()) {
+                // 为所有项目添加touch事件支持
+                document.querySelectorAll('.item').forEach(function(item) {
+                    item.addEventListener('touchstart', function(e) {
+                        this.style.transform = 'scale(0.98)';
+                        this.style.webkitTransform = 'scale(0.98)';
+                        this.style.backgroundColor = '#f8f9fa';
+                    });
+                    
+                    item.addEventListener('touchend', function(e) {
+                        this.style.transform = '';
+                        this.style.webkitTransform = '';
+                        this.style.backgroundColor = '';
+                    });
+                    
+                    item.addEventListener('touchcancel', function(e) {
+                        this.style.transform = '';
+                        this.style.webkitTransform = '';
+                        this.style.backgroundColor = '';
+                    });
+                });
+            }
+        }
+        
         let functions = [
             {
                 "name": "干燥失重",
@@ -340,12 +561,51 @@
         ];
 
         $(document).ready(function() {
+            // 隐藏加载提示
+            document.getElementById('wechatLoading').style.display = 'none';
+            
+            // 显示兼容性提示
+            showCompatibilityWarning();
+            
             // 加载功能列表
             functions.forEach(value => {
-                let onclick = `window.location.href='${value.location}'`;
-                let div = `<div class="item" onclick="${onclick}">${value.name}</div>`;
+                // 优化微信浏览器中的链接处理
+                let clickHandler = `window.location.href='${value.location}'`;
+                
+                // 如果是微信浏览器，使用更稳定的跳转方式
+                if (isWeChatBrowser() || isX5Browser()) {
+                    clickHandler = `if(window.__wxjs_environment === 'miniprogram'){window.location.href='${value.location}'}else{window.open('${value.location}','_self')}`;
+                }
+                
+                let div = `<div class="item" onclick="${clickHandler}">${value.name}</div>`;
                 $(".list").append(div);
             });
+            
+            // 优化微信浏览器点击
+            setTimeout(optimizeWeChatClicks, 100);
+            
+            // 微信浏览器特殊处理
+            if (isWeChatBrowser() || isX5Browser()) {
+                // 强制重绘解决一些渲染问题
+                setTimeout(function() {
+                    document.body.style.opacity = '0.99';
+                    setTimeout(function() {
+                        document.body.style.opacity = '1';
+                    }, 50);
+                }, 100);
+                
+                // 防止微信浏览器下拉刷新
+                document.addEventListener('touchmove', function(e) {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+        });
+        
+        // 页面加载完成后显示内容
+        window.addEventListener('load', function() {
+            document.getElementById('wechatLoading').style.display = 'none';
         });
     </script>
 </body>
