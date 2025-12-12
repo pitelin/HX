@@ -408,8 +408,10 @@
             });
         });
         
-        function loadColumnData() {
+            function loadColumnData() {
             $.getJSON('./statics/info/column-search.json', function(data) {
+                allData = data;
+                filteredData = [...data];
                 allData = data;
                 filteredData = [...data];
                 
