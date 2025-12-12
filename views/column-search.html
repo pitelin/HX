@@ -409,8 +409,8 @@
         });
         
         function loadColumnData() {
-            // 使用正确的相对路径：返回到上一级目录，然后进入statics/info/
-            $.getJSON('../statics/info/column-search.json', function(data) {
+            // 修复URL：添加https://前缀
+            $.getJSON('https://pitelin.github.io/HX/statics/info/column-search.json', function(data) {
                 allData = data;
                 filteredData = [...data];
                 
@@ -420,16 +420,28 @@
                 
             }).fail(function(jqxhr, textStatus, error) {
                 console.error('加载色谱柱数据失败:', textStatus, error);
-                $('#loading').html('加载数据失败，请检查数据文件是否存在');
+                console.error('尝试的URL: https://pitelin.github.io/HX/statics/info/column-search.json');
+                $('#loading').html('加载数据失败，请检查网络连接或数据文件');
                 
-                // 如果加载失败，显示示例数据
-                setTimeout(() => {
-                    allData = getSampleData();
-                    filteredData = [...allData];
+                // 如果加载失败，尝试使用相对路径
+                console.log('尝试使用相对路径加载数据...');
+                $.getJSON('../statics/info/column-search.json', function(data) {
+                    console.log('相对路径加载成功');
+                    allData = data;
+                    filteredData = [...data];
                     displayData(filteredData);
                     updateStats(filteredData);
-                    $('#stats').html('加载本地示例数据：共 ' + allData.length + ' 根色谱柱（数据文件加载失败）');
-                }, 1000);
+                }).fail(function(jqxhr2, textStatus2, error2) {
+                    console.error('相对路径也失败:', textStatus2, error2);
+                    // 如果都失败，显示示例数据
+                    setTimeout(() => {
+                        allData = getSampleData();
+                        filteredData = [...allData];
+                        displayData(filteredData);
+                        updateStats(filteredData);
+                        $('#stats').html('加载本地示例数据：共 ' + allData.length + ' 根色谱柱（数据文件加载失败）');
+                    }, 1000);
+                });
             });
         }
         
