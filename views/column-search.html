@@ -353,7 +353,7 @@
             </div>
             
             <div id="stats" class="stats">
-                正在从服务器加载色谱柱数据...
+                正在加载色谱柱数据...
             </div>
             
             <div class="table-container">
@@ -381,7 +381,7 @@
 
     <script src="./statics/modules/jquery.min.js"></script>
     <script>
-        // 从外部文件加载色谱柱数据
+        // 从本地文件加载色谱柱数据
         let allData = [];
         let filteredData = [];
 
@@ -419,7 +419,7 @@
                 
             }).fail(function(jqxhr, textStatus, error) {
                 console.error('加载色谱柱数据失败:', textStatus, error);
-                $('#loading').html('加载数据失败，请检查网络连接或数据文件');
+                $('#loading').html('加载数据失败，请检查数据文件是否存在');
                 
                 // 如果加载失败，显示示例数据
                 setTimeout(() => {
